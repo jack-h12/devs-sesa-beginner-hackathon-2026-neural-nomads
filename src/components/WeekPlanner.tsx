@@ -90,7 +90,7 @@ function DetailPanel({ scored, weatherDay, onGoTonight }: {
   const stats = [
     { label: 'Cloud cover', value: `${scored.cloudCover}%`, note: scored.cloudCover < 30 ? 'Clear' : scored.cloudCover < 60 ? 'Patchy' : 'Overcast' },
     { label: 'Moon brightness', value: `${moon.illumination}%`, note: moon.phaseName },
-    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.temperature)}°C` : '—', note: 'Evening high' },
+    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.temperature)}°C` : '—', note: 'Current · daily high' },
     { label: 'Wind', value: weatherDay ? `${Math.round(weatherDay.windSpeed)} km/h` : '—', note: 'Max speed' },
   ];
 

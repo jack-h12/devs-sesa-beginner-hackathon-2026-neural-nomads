@@ -39,12 +39,13 @@ export function useWeather(lat: number, lon: number) {
     const fetchWeather = async () => {
       setState(prev => ({ ...prev, loading: true, error: null }));
       try {
-        // Open-Meteo: free, no API key needed
+        console.log('[useWeather] Fetching for coords:', lat, lon);
         const url = new URL('https://api.open-meteo.com/v1/forecast');
         url.searchParams.set('latitude', lat.toFixed(4));
         url.searchParams.set('longitude', lon.toFixed(4));
-        url.searchParams.set('hourly', 'cloudcover,temperature_2m,wind_speed_10m,precipitation,visibility');
-        url.searchParams.set('daily', 'cloudcover_mean,temperature_2m_max,precipitation_sum,wind_speed_10m_max');
+        url.searchParams.set('current', 'temperature_2m');
+        url.searchParams.set('hourly', 'cloud_cover,temperature_2m,wind_speed_10m,precipitation,visibility');
+        url.searchParams.set('daily', 'cloud_cover_mean,temperature_2m_max,precipitation_sum,wind_speed_10m_max');
         url.searchParams.set('forecast_days', '7');
         url.searchParams.set('timezone', 'auto');
         url.searchParams.set('wind_speed_unit', 'kmh');
@@ -52,6 +53,8 @@ export function useWeather(lat: number, lon: number) {
         const res = await fetch(url.toString());
         if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
         const data = await res.json();
+        const currentTemp = Math.round(data.current?.temperature_2m ?? data.daily?.temperature_2m_max?.[0] ?? 15);
+        console.log('[useWeather] API success, current temp:', currentTemp);
 
         const days: DailyWeatherData[] = [];
         const totalDays = data.daily.time.length;
@@ -65,16 +68,17 @@ export function useWeather(lat: number, lon: number) {
 
           const hourly: HourlyWeather[] = [];
           let eveningCloudSum = 0;
+          let eveningTempSum = 0;
           let eveningCount = 0;
           let minCloud = 100;
 
           for (let h = startIdx; h < endIdx && h < data.hourly.time.length; h++) {
             const hour = new Date(data.hourly.time[h]).getHours();
-            const cc = data.hourly.cloudcover[h] ?? 50;
+            const cc = data.hourly.cloud_cover[h] ?? 50;
             const temp = data.hourly.temperature_2m[h] ?? 15;
             const wind = data.hourly.wind_speed_10m[h] ?? 10;
             const precip = data.hourly.precipitation[h] ?? 0;
-            const vis = (data.hourly.visibility[h] ?? 20000) / 1000; // km
+            const vis = (data.hourly.visibility[h] ?? 20000) / 1000;
 
             hourly.push({
               time: data.hourly.time[h],
@@ -85,21 +89,23 @@ export function useWeather(lat: number, lon: number) {
               visibility: vis,
             });
 
-            // Evening hours 19-23 are most important for stargazing
-            if (hour >= 19 && hour <= 23) {
+            // Evening hours 18-22 for stargazing conditions
+            if (hour >= 18 && hour <= 22) {
               eveningCloudSum += cc;
+              eveningTempSum += temp;
               eveningCount++;
             }
             if (cc < minCloud) minCloud = cc;
           }
 
-          const cloudCoverAvg = eveningCount > 0 ? Math.round(eveningCloudSum / eveningCount) : (data.daily.cloudcover_mean[i] ?? 50);
+          const cloudCoverAvg = eveningCount > 0 ? Math.round(eveningCloudSum / eveningCount) : (data.daily.cloud_cover_mean[i] ?? 50);
+          const temperature = i === 0 ? currentTemp : Math.round(data.daily.temperature_2m_max[i] ?? 15);
 
           days.push({
             date,
             cloudCoverAvg,
             cloudCoverMin: minCloud,
-            temperature: data.daily.temperature_2m_max[i] ?? 15,
+            temperature,
             precipitation: data.daily.precipitation_sum[i] ?? 0,
             windSpeed: data.daily.wind_speed_10m_max[i] ?? 10,
             visibility: 20,
@@ -110,9 +116,7 @@ export function useWeather(lat: number, lon: number) {
         setState({ days, loading: false, error: null });
       } catch (err) {
         console.error('Weather fetch error:', err);
-        // Generate mock data as fallback
-        const mockDays = generateMockWeather();
-        setState({ days: mockDays, loading: false, error: null });
+        setState({ days: [], loading: false, error: String(err) });
       }
     };
 
@@ -122,23 +126,3 @@ export function useWeather(lat: number, lon: number) {
   return state;
 }
 
-function generateMockWeather(): DailyWeatherData[] {
-  const days: DailyWeatherData[] = [];
-  const today = new Date();
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    const cloudCoverAvg = Math.round(Math.random() * 80);
-    days.push({
-      date,
-      cloudCoverAvg,
-      cloudCoverMin: Math.max(0, cloudCoverAvg - 20),
-      temperature: 15 + Math.round(Math.random() * 10),
-      precipitation: Math.random() > 0.7 ? Math.round(Math.random() * 5) : 0,
-      windSpeed: 5 + Math.round(Math.random() * 20),
-      visibility: 10 + Math.round(Math.random() * 30),
-      hourly: [],
-    });
-  }
-  return days;
-}
