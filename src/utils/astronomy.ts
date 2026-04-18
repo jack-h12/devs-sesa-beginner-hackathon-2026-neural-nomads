@@ -261,27 +261,50 @@ export function calculateDayScore(date: Date, cloudCover: number, lightPollution
 
 // ─── Constellations ──────────────────────────────────────────────────────────
 
-export function getSeason(date: Date): string {
+export function getSeason(date: Date, lat: number = 0): string {
   const m = date.getMonth() + 1;
-  if (m >= 12 || m <= 2) return 'Summer';
-  if (m >= 3 && m <= 5) return 'Autumn';
-  if (m >= 6 && m <= 8) return 'Winter';
-  return 'Spring';
+  // Northern Hemisphere seasons (flip for Southern)
+  const north = lat >= 0;
+  if (m >= 12 || m <= 2) return north ? 'Winter' : 'Summer';
+  if (m >= 3 && m <= 5)  return north ? 'Spring' : 'Autumn';
+  if (m >= 6 && m <= 8)  return north ? 'Summer' : 'Winter';
+  return north ? 'Autumn' : 'Spring';
 }
 
-export function getConstellations(date: Date) {
-  const season = getSeason(date);
-  const list = [
-    { name: 'Southern Cross', emoji: '✚', season: 'Autumn/Winter', description: "The most recognised constellation in the Southern Hemisphere — on our flag. Four bright stars form a cross; the long axis points toward the South Celestial Pole. There's no southern 'pole star', so Kiwi navigators use this cross instead." },
-    { name: 'Orion the Hunter', emoji: '⚔️', season: 'Summer', description: "Appears upside-down from New Zealand compared to how the Northern Hemisphere sees it. Look for the three-star belt — the most recognisable line in the sky. The Orion Nebula sits just below it, visible as a fuzzy smudge to the naked eye." },
-    { name: 'Scorpius', emoji: '🦂', season: 'Winter', description: "A beautiful S-shaped arc. The heart is Antares — a red supergiant large enough to swallow Earth's orbit whole. Look for the reddish-orange tint that makes it stand out immediately." },
-    { name: 'Sagittarius', emoji: '🏹', season: 'Winter', description: "Shaped like a teapot. When you look at it, you're staring toward the galactic centre — 26,000 light-years away. The 'steam' from the spout is the densest visible part of the Milky Way." },
-    { name: 'Centaurus', emoji: '🐎', season: 'Autumn/Winter', description: "Contains Alpha Centauri — the closest star system to Earth at 4.37 light-years. What looks like one star is actually three. Also home to Omega Centauri, the largest globular cluster you can see without a telescope." },
-    { name: 'Milky Way', emoji: '🌌', season: 'Winter', description: "From a dark NZ site, the Milky Way is a glowing river of billions of stars arching overhead. July and August are peak season. Let your eyes adjust for 20 minutes and it becomes genuinely spectacular." },
-    { name: 'Magellanic Clouds', emoji: '☁️', season: 'All year', description: "Two fuzzy patches near the Southern Cross — entire satellite galaxies orbiting ours. The Large Magellanic Cloud is 160,000 light-years away. Completely invisible from Europe or North America." },
-    { name: 'Canopus', emoji: '⭐', season: 'All year', description: "Second brightest star in the sky, circumpolar from New Zealand (never sets). Ancient Polynesian navigators used it for latitude. It's 310 light-years away and 10,000 times more luminous than our Sun." },
+type Hemi = 'south' | 'north' | 'both';
+interface ConstellationInfo { name: string; emoji: string; season: string; hemi: Hemi; description: string; }
+
+export function getConstellations(date: Date, lat: number = 0) {
+  const season = getSeason(date, lat);
+  const isNorth = lat >= 0;
+
+  const all: ConstellationInfo[] = [
+    // Southern-only
+    { name: 'Southern Cross', emoji: '✚', season: 'Autumn/Winter', hemi: 'south', description: "The most recognised constellation in the Southern Hemisphere. Four bright stars form a cross; the long axis points toward the South Celestial Pole — there's no southern 'pole star', so navigators use this cross instead." },
+    { name: 'Centaurus', emoji: '🐎', season: 'Autumn/Winter', hemi: 'south', description: "Contains Alpha Centauri — the closest star system to Earth at 4.37 light-years. What looks like one star is actually three. Also home to Omega Centauri, the largest globular cluster visible without a telescope." },
+    { name: 'Magellanic Clouds', emoji: '☁️', season: 'All year', hemi: 'south', description: "Two fuzzy patches near the Southern Cross — entire satellite galaxies orbiting ours. The Large Magellanic Cloud is 160,000 light-years away. Completely invisible from the Northern Hemisphere." },
+    { name: 'Canopus', emoji: '⭐', season: 'All year', hemi: 'south', description: "Second brightest star in the sky, circumpolar from most southern latitudes (never sets). Ancient Polynesian navigators used it for latitude. 310 light-years away and 10,000× more luminous than our Sun." },
+
+    // Northern-only
+    { name: 'Ursa Major (Big Dipper)', emoji: '🥄', season: 'Spring', hemi: 'north', description: "The Big Dipper is the most iconic asterism in the northern sky. The two stars at the end of the 'bowl' point directly to Polaris, the North Star. Circumpolar from most of the Northern Hemisphere." },
+    { name: 'Cassiopeia', emoji: '👑', season: 'Autumn', hemi: 'north', description: "A distinct W-shape (or M, depending on the time of night) near the North Star. Circumpolar from mid-northern latitudes. Named for a vain queen in Greek mythology." },
+    { name: 'Polaris / Ursa Minor', emoji: '⭐', season: 'All year', hemi: 'north', description: "The North Star sits almost exactly on the celestial pole. Every other star appears to rotate around it through the night. Your latitude equals Polaris's altitude — a useful trick for navigation." },
+    { name: 'Andromeda Galaxy (M31)', emoji: '🌌', season: 'Autumn', hemi: 'north', description: "The farthest thing you can see with the naked eye — 2.5 million light-years away. A faint smudge near the constellation Andromeda. On a collision course with our Milky Way (in 4.5 billion years)." },
+    { name: 'Cygnus (Northern Cross)', emoji: '🦢', season: 'Summer', hemi: 'north', description: "A large cross-shaped swan flying along the Milky Way. Contains Deneb, one of the three stars of the Summer Triangle. Rich in star clusters and nebulae visible with binoculars." },
+
+    // Visible from both
+    { name: 'Orion the Hunter', emoji: '⚔️', season: isNorth ? 'Winter' : 'Summer', hemi: 'both', description: isNorth ? "Winter's signature constellation — three-star belt, Betelgeuse on one shoulder, Rigel at one foot. The Orion Nebula hangs below the belt, visible as a fuzzy smudge." : "Appears upside-down from the Southern Hemisphere compared to how the north sees it. The three-star belt is the most recognisable line in the sky. The Orion Nebula sits just 'above' it from here — visible to the naked eye as a fuzzy smudge." },
+    { name: 'Scorpius', emoji: '🦂', season: isNorth ? 'Summer' : 'Winter', hemi: 'both', description: "A beautiful S-shaped arc. The heart is Antares — a red supergiant large enough to swallow Earth's orbit whole. The reddish-orange tint makes it stand out immediately." },
+    { name: 'Sagittarius', emoji: '🏹', season: isNorth ? 'Summer' : 'Winter', hemi: 'both', description: "Shaped like a teapot. When you look at it, you're staring toward the galactic centre — 26,000 light-years away. The 'steam' from the spout is the densest visible part of the Milky Way." },
+    { name: 'Leo', emoji: '🦁', season: 'Spring', hemi: 'both', description: "A sickle-shaped head attached to a triangle of a hindquarters — one of the few constellations that actually looks like its name. Regulus, the 'heart', is a bright blue-white star about 79 light-years away." },
+    { name: 'Milky Way', emoji: '🌌', season: isNorth ? 'Summer' : 'Winter', hemi: 'both', description: "From a dark site, the Milky Way is a glowing river of billions of stars arching overhead. Peak visibility in the Southern Hemisphere's winter / Northern Hemisphere's summer. Allow 20 min for dark adaptation and it becomes spectacular." },
   ];
-  return list.sort((a, b) => {
+
+  // Filter by hemisphere visibility
+  const visible = all.filter(c => c.hemi === 'both' || (isNorth ? c.hemi === 'north' : c.hemi === 'south'));
+
+  // Sort: season match first, then alphabetical stability
+  return visible.sort((a, b) => {
     const aP = a.season.includes(season) || a.season === 'All year' ? 0 : 1;
     const bP = b.season.includes(season) || b.season === 'All year' ? 0 : 1;
     return aP - bP;

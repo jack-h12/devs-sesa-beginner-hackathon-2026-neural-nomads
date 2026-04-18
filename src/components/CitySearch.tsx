@@ -59,13 +59,17 @@ export default function CitySearch({ onSelectCity, currentCity }: Props) {
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&featuretype=city&accept-language=en`;
         const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
         const data = await res.json();
-        const mapped: CityResult[] = data.map((d: any) => ({
-          name: d.name || d.display_name.split(',')[0],
-          country: d.address?.country || d.display_name.split(',').slice(-1)[0].trim(),
-          lat: parseFloat(d.lat),
-          lon: parseFloat(d.lon),
-          displayName: `${d.name || d.display_name.split(',')[0]}, ${d.address?.country || ''}`,
-        }));
+        const mapped: CityResult[] = data.map((d: any) => {
+          const name = d.name || d.display_name.split(',')[0];
+          const country = d.address?.country || d.display_name.split(',').slice(-1)[0].trim();
+          return {
+            name,
+            country,
+            lat: parseFloat(d.lat),
+            lon: parseFloat(d.lon),
+            displayName: country ? `${name}, ${country}` : name,
+          };
+        });
         setResults(mapped.length > 0 ? mapped : POPULAR_CITIES.filter(c =>
           c.name.toLowerCase().includes(query.toLowerCase())
         ));

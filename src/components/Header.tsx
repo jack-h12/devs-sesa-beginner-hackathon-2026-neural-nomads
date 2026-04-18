@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import CitySearch from './CitySearch';
 
 interface HeaderProps {
-  view: 'planner' | 'tonight' | 'skymap' | 'solarsystem' | 'explorer';
-  onViewChange: (view: 'planner' | 'tonight' | 'skymap' | 'solarsystem' | 'explorer') => void;
+  view: 'planner' | 'tonight' | 'skymap' | 'explorer';
+  onViewChange: (view: 'planner' | 'tonight' | 'skymap' | 'explorer') => void;
   city: string;
   country: string;
   onCitySelect: (lat: number, lon: number, city: string, country: string) => void;
@@ -64,16 +64,6 @@ export default function Header({ view, onViewChange, city, country: _country, on
             }`}
           >
             <span className="hidden sm:inline">🚀 </span>Sky Map
-          </button>
-          <button
-            onClick={() => onViewChange('solarsystem')}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              view === 'solarsystem'
-                ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md'
-                : 'text-muted-text hover:text-light-text'
-            }`}
-          >
-            <span className="hidden sm:inline">🪐 </span>Solar System
           </button>
           <button
             onClick={() => onViewChange('explorer')}

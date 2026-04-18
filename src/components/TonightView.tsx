@@ -252,8 +252,8 @@ function MeteorCard() {
 }
 
 function ConstellationsCard({ lat }: { lat: number }) {
-  const items = getConstellations(new Date());
-  const season = getSeason(new Date());
+  const items = getConstellations(new Date(), lat);
+  const season = getSeason(new Date(), lat);
   const [idx, setIdx] = useState(0);
 
   return (
@@ -289,13 +289,15 @@ function ConstellationsCard({ lat }: { lat: number }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Matariki */}
-      <div className="mt-4 bg-violet-950/30 border border-violet-500/20 rounded-xl p-4">
-        <p className="text-white font-semibold text-sm mb-1">🌟 Matariki — NZ's Star Cluster</p>
-        <p className="text-slate-400 text-xs leading-relaxed">
-          The Pleiades (Matariki) rise in pre-dawn June skies, marking the Māori New Year. Seven sisters visible to the naked eye. A NZ public holiday since 2022 celebrating indigenous astronomy.
-        </p>
-      </div>
+      {/* Matariki — only for Southern Hemisphere users */}
+      {lat < 0 && (
+        <div className="mt-4 bg-violet-950/30 border border-violet-500/20 rounded-xl p-4">
+          <p className="text-white font-semibold text-sm mb-1">🌟 Matariki — NZ's Star Cluster</p>
+          <p className="text-slate-400 text-xs leading-relaxed">
+            The Pleiades (Matariki) rise in pre-dawn June skies, marking the Māori New Year. Seven sisters visible to the naked eye. A NZ public holiday since 2022 celebrating indigenous astronomy.
+          </p>
+        </div>
+      )}
     </Section>
   );
 }

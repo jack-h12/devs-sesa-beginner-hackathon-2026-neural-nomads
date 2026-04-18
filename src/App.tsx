@@ -5,14 +5,13 @@ import Header from './components/Header';
 import WeekPlanner from './components/WeekPlanner';
 import TonightView from './components/TonightView';
 import SkyMapView from './components/SkyMapView';
-import SolarSystemView from './components/SolarSystemView';
 import SpaceExplorerView from './components/SpaceExplorerView';
 import LoadingScreen from './components/LoadingScreen';
 import { useLocation } from './hooks/useLocation';
 import { useWeather } from './hooks/useWeather';
 import { useISS } from './hooks/useISS';
 
-type View = 'planner' | 'tonight' | 'skymap' | 'solarsystem' | 'explorer';
+type View = 'planner' | 'tonight' | 'skymap' | 'explorer';
 
 interface OverrideLocation {
   lat: number;
@@ -107,16 +106,6 @@ export default function App() {
                 transition={{ duration: 0.35 }}
               >
                 <SkyMapView userLat={activeLocation.lat} userLon={activeLocation.lon} />
-              </motion.div>
-            ) : view === 'solarsystem' ? (
-              <motion.div
-                key="solarsystem"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
-              >
-                <SolarSystemView />
               </motion.div>
             ) : (
               <motion.div
