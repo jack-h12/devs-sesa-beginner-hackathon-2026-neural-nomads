@@ -17,7 +17,7 @@ export default function Header({ view, onViewChange, city, country: _country, on
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="fixed top-0 left-0 right-0 z-50 px-3 py-3"
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-3 items-center glass rounded-2xl px-4 py-2.5 gap-3">
+      <div className="max-w-7xl mx-auto grid grid-cols-[288px_1fr_288px] items-center glass rounded-2xl px-4 py-2.5 gap-3">
         {/* Logo */}
         <div className="flex items-center gap-2.5">
           <div className="relative">
@@ -69,7 +69,7 @@ export default function Header({ view, onViewChange, city, country: _country, on
         </div>
 
         {/* City search — right */}
-        <div className="flex justify-end">
+        <div className="flex justify-end w-72">
           <CitySearch onSelectCity={onCitySelect} currentCity={city} />
         </div>
       </div>
