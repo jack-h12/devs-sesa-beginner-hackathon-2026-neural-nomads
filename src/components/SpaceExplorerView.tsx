@@ -800,17 +800,17 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
         <div style={{ color:'rgba(100,180,255,0.35)', fontSize:'7px', marginTop:4, letterSpacing:'0.1em' }}>THROTTLE</div>
       </div>
 
-      {/* Right HUD — target lock */}
-      <div style={{ position:'absolute', top:'24%', right:'9%', color:'rgba(100,220,255,0.8)', fontFamily:'monospace', fontSize:'11px', textAlign:'right' }}>
+      {/* Target lock — relocated to top-left, above velocity, clear of radar and right-side HUD */}
+      <div style={{ position:'absolute', top:'13%', left:'9%', color:'rgba(100,220,255,0.8)', fontFamily:'monospace', fontSize:'11px', textAlign:'left' }}>
         {lockedPlanet ? (
           <>
-            <div style={{ color:'rgba(100,255,150,0.7)', fontSize:'9px', letterSpacing:'0.15em', marginBottom:4, display:'flex', justifyContent:'flex-end', alignItems:'center', gap:6 }}>
+            <div style={{ color:'rgba(100,255,150,0.7)', fontSize:'9px', letterSpacing:'0.15em', marginBottom:4, display:'flex', alignItems:'center', gap:6 }}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'rgba(100,255,150,0.95)', boxShadow:'0 0 6px rgba(100,255,150,0.8)', animation:'hud-blink 0.8s infinite' }}/>
               TARGET LOCKED
             </div>
             <div style={{ fontSize:'17px', fontWeight:'bold', color:'rgba(180,255,200,0.98)', textShadow:'0 0 6px rgba(100,255,150,0.4)' }}>{lockedPlanet.toUpperCase()}</div>
             <div style={{ color:'rgba(100,255,150,0.5)', fontSize:'8px', marginTop:4 }}>SIGNAL // STABLE</div>
-            <div style={{ marginTop:6, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
+            <div style={{ marginTop:6, display:'flex', flexDirection:'column', alignItems:'flex-start', gap:3 }}>
               <div style={{ width:80, height:3, background:'rgba(100,255,150,0.15)', borderRadius:2, overflow:'hidden' }}>
                 <div style={{ width:'75%', height:'100%', background:'linear-gradient(to right, rgba(100,255,150,0.4), rgba(100,255,150,0.9))' }}/>
               </div>
@@ -835,26 +835,6 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
         </div>
       </div>
 
-      {/* Right HUD — target lock */}
-      <div style={{ position:'absolute', top:'30%', right:'9%', color:'rgba(100,220,255,0.8)', fontFamily:'monospace', fontSize:'11px', textAlign:'right' }}>
-        {lockedPlanet ? (
-          <>
-            <div style={{ color:'rgba(100,255,150,0.6)', fontSize:'9px', marginBottom:4 }}>TARGET LOCKED</div>
-            <div style={{ fontSize:'13px', fontWeight:'bold', color:'rgba(180,255,200,0.95)' }}>{lockedPlanet}</div>
-            <div style={{ marginTop:6, display:'flex', justifyContent:'flex-end' }}>
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'rgba(100,255,150,0.9)', boxShadow:'0 0 8px rgba(100,255,150,0.7)' }}/>
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{ color:'rgba(100,180,255,0.4)', fontSize:'9px', marginBottom:4 }}>TARGET</div>
-            <div style={{ fontSize:'13px', fontWeight:'bold', color:'rgba(100,150,200,0.5)' }}>—</div>
-            <div style={{ marginTop:6, display:'flex', justifyContent:'flex-end' }}>
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'rgba(100,180,255,0.3)', boxShadow:'0 0 4px rgba(100,180,255,0.2)' }}/>
-            </div>
-          </>
-        )}
-      </div>
 
       {/* ── Dashboard bottom ── */}
       <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'30%', background:'linear-gradient(to top, rgba(3,7,20,1) 55%, rgba(8,14,30,0.95) 85%, transparent)', borderTop:'2px solid rgba(60,100,200,0.35)', boxShadow:'inset 0 2px 0 rgba(120,180,255,0.15), inset 0 -1px 30px rgba(0,0,0,0.6)' }}>
@@ -1060,9 +1040,9 @@ export default function SpaceExplorerView() {
 
       <CockpitHUD speed={speed} lockedPlanet={selected} flying={flying}/>
 
-      {/* Destinations nav — "JUMP CONSOLE" mounted just inside the right cockpit wall */}
-      <div style={{ position:'absolute', top:'50%', right:'calc(4.5% + 14px)', transform:'translateY(-50%)', zIndex:30, display:'flex', flexDirection:'column', gap:4, pointerEvents:'auto', padding:'10px 10px 12px', background:'linear-gradient(to bottom, rgba(12,20,42,0.85), rgba(8,14,32,0.9))', border:'1px solid rgba(80,130,220,0.35)', borderRadius:8, boxShadow:'inset 0 1px 0 rgba(120,180,255,0.15), 0 0 10px rgba(0,0,0,0.5)' }}>
-        <div style={{ color:'rgba(100,180,255,0.75)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.2em', marginBottom:6, textAlign:'right', display:'flex', justifyContent:'flex-end', alignItems:'center', gap:6 }}>
+      {/* Destinations nav — "JUMP CONSOLE" horizontal row at top of canvas, clear of the right-side radar/HUD */}
+      <div style={{ position:'absolute', top:88, right:12, zIndex:60, display:'flex', flexDirection:'column', gap:2, pointerEvents:'auto', padding:'6px 8px 8px', background:'linear-gradient(to bottom, rgba(12,20,42,0.85), rgba(8,14,32,0.9))', border:'1px solid rgba(80,130,220,0.35)', borderRadius:8, boxShadow:'inset 0 1px 0 rgba(120,180,255,0.15), 0 0 10px rgba(0,0,0,0.5)' }}>
+        <div style={{ color:'rgba(100,180,255,0.75)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.2em', marginBottom:4, textAlign:'left', display:'flex', alignItems:'center', gap:6 }}>
           <div style={{ width:5, height:5, borderRadius:'50%', background:'rgba(100,255,150,0.9)', boxShadow:'0 0 4px rgba(100,255,150,0.7)', animation:'hud-blink 1.6s infinite' }}/>
           JUMP CONSOLE
         </div>
@@ -1072,10 +1052,10 @@ export default function SpaceExplorerView() {
               background: selected===b.name?'linear-gradient(to right, rgba(60,120,255,0.3), rgba(80,140,255,0.15))':'rgba(5,10,30,0.7)',
               border:`1px solid ${selected===b.name?'rgba(120,180,255,0.7)':'rgba(60,80,180,0.35)'}`,
               borderRadius:4, color:selected===b.name?'white':'rgba(160,190,255,0.8)',
-              fontSize:10, fontFamily:'monospace', fontWeight:'bold', letterSpacing:'0.05em',
-              padding:'4px 10px', cursor:flying?'default':'pointer', textAlign:'right',
+              fontSize:9, fontFamily:'monospace', fontWeight:'bold', letterSpacing:'0.05em',
+              padding:'2px 8px', cursor:flying?'default':'pointer', textAlign:'left',
               backdropFilter:'blur(8px)', transition:'all 0.2s',
-              display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8,
+              display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8,
               boxShadow: selected===b.name?'0 0 6px rgba(100,160,255,0.35)':'none',
             }}
           >
