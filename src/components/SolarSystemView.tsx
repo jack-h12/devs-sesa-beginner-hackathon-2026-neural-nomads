@@ -105,12 +105,16 @@ function OrbitRing({ distance }: { distance: number }) {
     const a = (i / 128) * Math.PI * 2;
     return new THREE.Vector3(Math.cos(a) * distance, 0, Math.sin(a) * distance);
   });
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial color="#4a5a8a" transparent opacity={0.5} />
-    </line>
+  const orbitLine = useMemo(
+    () =>
+      new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({ color: '#4a5a8a', transparent: true, opacity: 0.5 })
+      ),
+    [points]
   );
+
+  return <primitive object={orbitLine} />;
 }
 
 function SaturnRings({ radius }: { radius: number }) {
