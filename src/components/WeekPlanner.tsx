@@ -116,7 +116,7 @@ function DetailPanel({ scored, weatherDay, nextWeatherDay, onGoTonight, userLat,
   const stats = [
     { label: 'Cloud cover', value: `${scored.cloudCover}%`, note: scored.cloudCover < 30 ? 'Clear' : scored.cloudCover < 60 ? 'Patchy' : 'Overcast' },
     { label: 'Moon brightness', value: `${moon.illumination}%`, note: moon.phaseName },
-    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.temperature)}°C` : '—', note: 'Current · daily high' },
+    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.hourly.length ? weatherDay.hourly.reduce((s: number, h: any) => s + (h.temperature ?? 0), 0) / weatherDay.hourly.length : weatherDay.temperature)}°C` : '—', note: 'Average' },
     { label: 'Wind', value: weatherDay ? `${Math.round(weatherDay.windSpeed)} km/h` : '—', note: 'Max speed' },
   ];
 
