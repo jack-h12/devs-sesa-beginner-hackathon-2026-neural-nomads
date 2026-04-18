@@ -866,7 +866,7 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
       ctx.fillStyle = 'rgba(120, 140, 180, 0.5)';
       ctx.font = '11px Outfit';
       ctx.textAlign = 'center';
-      ctx.fillText('Drag to pan · Scroll / pinch to zoom · Hover to preview · Click for details', W / 2, H - 12);
+      ctx.fillText('Drag to pan · Scroll / pinch to zoom · Hover to preview', W / 2, H - 12);
 
       animRef.current = requestAnimationFrame(draw);
     };
@@ -1036,7 +1036,7 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
                 <>
                   <div style={{ color: 'rgba(200,210,255,0.75)', marginBottom: 4 }}>{info.description}</div>
                   <div style={{ color: 'rgba(140,170,220,0.7)', fontSize: 10, letterSpacing: '0.05em' }}>
-                    Best: {info.season} · <span style={{ color: 'rgba(180,220,255,0.8)' }}>Click for details</span>
+                    Best: {info.season}
                   </div>
                 </>
               )}
