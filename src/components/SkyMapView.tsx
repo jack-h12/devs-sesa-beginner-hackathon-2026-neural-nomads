@@ -250,12 +250,15 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
     if (!ctx) return;
 
     const resize = () => {
-      const p = canvas.parentElement;
-      if (p) { canvas.width = p.clientWidth; canvas.height = p.clientHeight; }
+      const w = canvas.offsetWidth || window.innerWidth;
+      const h = canvas.offsetHeight || window.innerHeight;
+      if (w > 0 && h > 0) { canvas.width = w; canvas.height = h; }
     };
-    resize();
+    // Defer first resize so layout has settled
+    setTimeout(resize, 0);
     const ro = new ResizeObserver(resize);
-    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    ro.observe(canvas);
+    window.addEventListener('resize', resize);
 
     // Touch listeners need passive:false to allow preventDefault
     const onTouchStart = (e: TouchEvent) => { e.preventDefault(); const t = e.touches[0]; startDrag(t.clientX, t.clientY); };
@@ -404,17 +407,14 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
         const color = PLANET_COLORS[p.name] ?? '#ffffff';
         const pr = p.magnitude < -1 ? 6 : p.magnitude < 1 ? 4.5 : 3.5;
 
-        const pg = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, pr * 3.5);
-        pg.addColorStop(0, color.replace('#', 'rgba(') + ', 0.5)');  // rough but fine
-        pg.addColorStop(1, 'rgba(0,0,0,0)');
-        // Use a simple glow via shadow
         ctx.shadowColor = color;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 14;
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, pr, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         ctx.font = 'bold 9px Outfit';
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -483,6 +483,7 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
     return () => {
       cancelAnimationFrame(animRef.current);
       ro.disconnect();
+      window.removeEventListener('resize', resize);
       canvas.removeEventListener('touchstart', onTouchStart);
       canvas.removeEventListener('touchmove', onTouchMove);
       canvas.removeEventListener('touchend', onTouchEnd);
