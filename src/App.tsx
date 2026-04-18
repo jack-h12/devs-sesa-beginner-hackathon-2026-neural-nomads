@@ -104,7 +104,7 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.35 }}
               >
-                <SkyMapView />
+                <SkyMapView userLat={activeLocation.lat} userLon={activeLocation.lon} />
               </motion.div>
             )}
           </AnimatePresence>

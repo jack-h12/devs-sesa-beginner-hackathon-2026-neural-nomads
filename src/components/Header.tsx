@@ -17,9 +17,9 @@ export default function Header({ view, onViewChange, city, country: _country, on
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="fixed top-0 left-0 right-0 z-50 px-3 py-3"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-4 py-2.5 gap-3">
+      <div className="max-w-7xl mx-auto grid grid-cols-3 items-center glass rounded-2xl px-4 py-2.5 gap-3">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="flex items-center gap-2.5">
           <div className="relative">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg shadow-lg">
               🔭
@@ -33,7 +33,8 @@ export default function Header({ view, onViewChange, city, country: _country, on
         </div>
 
         {/* View Toggle — centre */}
-        <div className="flex items-center bg-white/5 rounded-xl p-1 border border-white/8 flex-shrink-0">
+        <div className="flex justify-center">
+        <div className="flex items-center bg-white/5 rounded-xl p-1 border border-white/8">
           <button
             onClick={() => onViewChange('planner')}
             className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
@@ -65,9 +66,12 @@ export default function Header({ view, onViewChange, city, country: _country, on
             <span className="hidden sm:inline">🚀 </span>Sky Map
           </button>
         </div>
+        </div>
 
         {/* City search — right */}
-        <CitySearch onSelectCity={onCitySelect} currentCity={city} />
+        <div className="flex justify-end">
+          <CitySearch onSelectCity={onCitySelect} currentCity={city} />
+        </div>
       </div>
     </motion.header>
   );

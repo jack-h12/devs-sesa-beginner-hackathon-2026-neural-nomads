@@ -90,7 +90,7 @@ function DetailPanel({ scored, weatherDay, onGoTonight }: {
   const stats = [
     { label: 'Cloud cover', value: `${scored.cloudCover}%`, note: scored.cloudCover < 30 ? 'Clear' : scored.cloudCover < 60 ? 'Patchy' : 'Overcast' },
     { label: 'Moon brightness', value: `${moon.illumination}%`, note: moon.phaseName },
-    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.temperature)}°C` : '—', note: 'Evening high' },
+    { label: 'Temperature', value: weatherDay ? `${Math.round(weatherDay.temperature)}°C` : '—', note: 'Current · daily high' },
     { label: 'Wind', value: weatherDay ? `${Math.round(weatherDay.windSpeed)} km/h` : '—', note: 'Max speed' },
   ];
 
@@ -234,8 +234,8 @@ export default function WeekPlanner({ weatherDays, userLat: _u, city, onSelectTo
         {/* Blend into the page background at the bottom */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-80 bg-gradient-to-b from-transparent via-[#080d1a]/80 to-[#080d1a]" />
 
-        <div className="relative text-center px-6 py-24 sm:py-32 max-w-5xl mx-auto">
-          <div className="pill pill-primary mb-6 mx-auto">
+        <div className="relative text-center px-6 pt-6 pb-24 sm:pt-6 sm:pb-32 max-w-5xl mx-auto">
+          <div className={`pill mb-6 mx-auto text-4xl transition-colors duration-300 w-64 flex-shrink-0 justify-center text-white ${weatherLoading ? 'bg-red-500/30' : 'pill-primary'}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
             {weatherLoading ? 'Fetching live weather…' : `Live conditions · ${city}`}
           </div>
