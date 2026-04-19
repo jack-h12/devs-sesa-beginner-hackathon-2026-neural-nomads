@@ -959,7 +959,13 @@ export default function SpaceExplorerView() {
   const [cursorInside, setCursorInside] = useState(false);
   const [pointerLocked, setPointerLocked] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showHint, setShowHint] = useState(true);
   const mouseInsideRef = useRef(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowHint(false), 4500);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const onChange = () => {
@@ -1050,13 +1056,37 @@ export default function SpaceExplorerView() {
         </svg>
       </div>
 
-      {/* Pointer-lock hint */}
-      <div style={{ position:'absolute', bottom:'28%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:30, whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:10 }}>
-        <span style={{ color: pointerLocked ? 'rgba(100,255,160,0.9)' : 'rgba(255,220,80,0.95)', fontSize:12, fontFamily:'monospace', fontWeight:'bold', letterSpacing:'0.18em', textShadow: pointerLocked ? '0 0 10px rgba(80,255,140,0.7)' : '0 0 10px rgba(255,200,50,0.8)' }}>
-          {pointerLocked ? '● FREE-LOOK ACTIVE' : '● CLICK TO ENTER FREE-LOOK'}
-        </span>
-        <span style={{ color:'rgba(180,180,255,0.5)', fontSize:11, fontFamily:'monospace', letterSpacing:'0.12em' }}>·</span>
-        <span style={{ color:'rgba(180,200,255,0.85)', fontSize:11, fontFamily:'monospace', letterSpacing:'0.15em', textShadow:'0 0 6px rgba(140,180,255,0.5)' }}>ESC TO RELEASE</span>
+      {/* Controls hint popup */}
+      <div style={{
+        position:'absolute', bottom:32, left:'50%', transform:`translateX(-50%) translateY(${showHint ? 0 : 20}px)`,
+        opacity: showHint ? 1 : 0, transition:'opacity 0.6s ease, transform 0.6s ease',
+        pointerEvents:'none', zIndex:40,
+        background:'rgba(8,16,36,0.82)', border:'1px solid rgba(100,160,255,0.25)',
+        borderRadius:12, padding:'14px 24px', backdropFilter:'blur(12px)',
+        boxShadow:'0 4px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(100,160,255,0.08)',
+        display:'flex', flexDirection:'column', alignItems:'center', gap:10,
+      }}>
+        <div style={{ color:'rgba(180,210,255,0.6)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.2em', textTransform:'uppercase' }}>Controls</div>
+        <div style={{ display:'flex', gap:20, alignItems:'center' }}>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+            <div style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.3)', borderRadius:6, padding:'4px 14px', color:'rgba(200,220,255,0.9)', fontSize:12, fontFamily:'monospace', fontWeight:'bold' }}>Click</div>
+            <div style={{ color:'rgba(140,170,220,0.7)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.1em' }}>Enter free-look</div>
+          </div>
+          <div style={{ width:1, height:36, background:'rgba(100,160,255,0.15)' }}/>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+            <div style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.3)', borderRadius:6, padding:'4px 14px', color:'rgba(200,220,255,0.9)', fontSize:12, fontFamily:'monospace', fontWeight:'bold' }}>Esc</div>
+            <div style={{ color:'rgba(140,170,220,0.7)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.1em' }}>Release</div>
+          </div>
+          <div style={{ width:1, height:36, background:'rgba(100,160,255,0.15)' }}/>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+            <div style={{ display:'flex', gap:4 }}>
+              {['W','A','S','D'].map(k => (
+                <div key={k} style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.3)', borderRadius:4, padding:'4px 8px', color:'rgba(200,220,255,0.9)', fontSize:11, fontFamily:'monospace', fontWeight:'bold' }}>{k}</div>
+              ))}
+            </div>
+            <div style={{ color:'rgba(140,170,220,0.7)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.1em' }}>Move</div>
+          </div>
+        </div>
       </div>
 
       <Canvas style={{ position:'absolute', inset:0 }}>
