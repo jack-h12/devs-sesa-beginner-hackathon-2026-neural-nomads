@@ -995,8 +995,8 @@ export default function SpaceExplorerView() {
       onMouseEnter={() => { setCursorInside(true); mouseInsideRef.current = true; }}
       onMouseLeave={() => { setCursorInside(false); mouseInsideRef.current = false; }}
     >
-      {/* Hitmarker — fixed centre */}
-      <div style={{ position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
+      {/* Hitmarker — fixed centre of space viewport */}
+      <div style={{ position:'absolute', left:'50%', top:'38%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
         <svg width="72" height="72" viewBox="0 0 72 72">
           {selected && (
             <circle cx="36" cy="36" r="26" fill="none" stroke="rgba(255,180,0,0.55)" strokeWidth="1" strokeDasharray="3 2">
