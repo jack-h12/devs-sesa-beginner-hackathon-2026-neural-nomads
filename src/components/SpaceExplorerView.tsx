@@ -500,6 +500,7 @@ function FirstPersonController({
   onArrived,
   onSpeedChange,
   onLookAt,
+  mouseInsideRef,
 }: {
   keysRef: React.RefObject<{ w:boolean;a:boolean;s:boolean;d:boolean;space:boolean;shift:boolean;c:boolean }>;
   flyTarget: React.RefObject<THREE.Vector3|null>;
@@ -507,10 +508,10 @@ function FirstPersonController({
   onArrived: () => void;
   onSpeedChange: (s: number) => void;
   onLookAt: (planet: string | null) => void;
+  mouseInsideRef: React.RefObject<boolean>;
 }) {
   const { camera } = useThree();
   const euler = useRef(new THREE.Euler(0,0,0,'YXZ'));
-  const isDragging = useRef(false);
   const lastMouse = useRef({x:0,y:0});
   const vel = useRef(new THREE.Vector3());
   const arrivedRef = useRef(onArrived);
@@ -529,21 +530,17 @@ function FirstPersonController({
   }, [camera]);
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => { isDragging.current=true; lastMouse.current={x:e.clientX,y:e.clientY}; };
-    const onUp = () => { isDragging.current=false; };
     const onMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
+      if (!mouseInsideRef.current) { lastMouse.current = {x:e.clientX, y:e.clientY}; return; }
       const dx=e.clientX-lastMouse.current.x, dy=e.clientY-lastMouse.current.y;
       lastMouse.current={x:e.clientX,y:e.clientY};
       euler.current.y -= dx*0.003;
       euler.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, euler.current.x-dy*0.003));
       camera.quaternion.setFromEuler(euler.current);
     };
-    window.addEventListener('mousedown',onDown);
-    window.addEventListener('mouseup',onUp);
     window.addEventListener('mousemove',onMove);
-    return ()=>{window.removeEventListener('mousedown',onDown);window.removeEventListener('mouseup',onUp);window.removeEventListener('mousemove',onMove);};
-  }, [camera]);
+    return ()=>{ window.removeEventListener('mousemove',onMove); };
+  }, [camera, mouseInsideRef]);
 
   const fwd = useRef(new THREE.Vector3());
   const right = useRef(new THREE.Vector3());
@@ -953,6 +950,7 @@ export default function SpaceExplorerView() {
   const rawPos = useRef({ x: 0.5, y: 0.38 });
   const smoothPos = useRef({ x: 0.5, y: 0.38 });
   const [cursorInside, setCursorInside] = useState(false);
+  const mouseInsideRef = useRef(false);
 
   useEffect(() => {
     let rafId: number;
@@ -1019,26 +1017,26 @@ export default function SpaceExplorerView() {
       ref={wrapperRef}
       style={{ width:'100%', height:'100vh', position:'relative', background:'#020810', cursor: cursorInside ? 'none' : 'default' }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setCursorInside(true)}
-      onMouseLeave={() => setCursorInside(false)}
+      onMouseEnter={() => { setCursorInside(true); mouseInsideRef.current = true; }}
+      onMouseLeave={() => { setCursorInside(false); mouseInsideRef.current = false; }}
     >
       {/* Floating hitmarker — follows mouse */}
-      <div ref={crosshairRef} style={{ position:'absolute', left:'50%', top:'38%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30 }}>
+      <div ref={crosshairRef} style={{ position:'absolute', left:'50%', top:'38%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
         <svg width="72" height="72" viewBox="0 0 72 72">
           {selected && (
-            <circle cx="36" cy="36" r="26" fill="none" stroke="rgba(100,255,150,0.45)" strokeWidth="0.6" strokeDasharray="3 2">
-              <animateTransform attributeName="transform" type="rotate" from="0 36 36" to="360 36 36" dur="6s" repeatCount="indefinite"/>
+            <circle cx="36" cy="36" r="26" fill="none" stroke="rgba(255,180,0,0.55)" strokeWidth="1" strokeDasharray="3 2">
+              <animateTransform attributeName="transform" type="rotate" from="0 36 36" to="360 36 36" dur="4s" repeatCount="indefinite"/>
             </circle>
           )}
-          <circle cx="36" cy="36" r="14" fill="none" stroke={selected ? 'rgba(100,255,150,0.55)' : 'rgba(100,200,255,0.4)'} strokeWidth="0.8"/>
-          <circle cx="36" cy="36" r="2.5" fill={selected ? 'rgba(100,255,150,0.95)' : 'rgba(100,200,255,0.7)'}/>
+          <circle cx="36" cy="36" r="14" fill="none" stroke={selected ? 'rgba(255,160,0,0.9)' : 'rgba(100,200,255,0.4)'} strokeWidth={selected ? 1.2 : 0.8}/>
+          <circle cx="36" cy="36" r="2.5" fill={selected ? 'rgba(255,200,50,1)' : 'rgba(100,200,255,0.7)'}/>
           {([[36,8,36,16],[36,56,36,64],[8,36,16,36],[56,36,64,36]] as number[][]).map(([x1,y1,x2,y2],i) => (
-            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={selected ? 'rgba(100,255,150,0.7)' : 'rgba(100,200,255,0.55)'} strokeWidth="1"/>
+            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={selected ? 'rgba(255,160,0,0.95)' : 'rgba(100,200,255,0.55)'} strokeWidth={selected ? 1.5 : 1}/>
           ))}
           {selected && ([[16,16],[56,16],[16,56],[56,56]] as number[][]).map(([cx,cy],i) => {
             const dx = cx < 36 ? 1 : -1, dy = cy < 36 ? 1 : -1;
             return (
-              <path key={i} d={`M ${cx} ${cy+6*dy} L ${cx} ${cy} L ${cx+6*dx} ${cy}`} fill="none" stroke="rgba(100,255,150,0.8)" strokeWidth="1.2"/>
+              <path key={i} d={`M ${cx} ${cy+6*dy} L ${cx} ${cy} L ${cx+6*dx} ${cy}`} fill="none" stroke="rgba(255,180,0,0.95)" strokeWidth="1.5"/>
             );
           })}
         </svg>
@@ -1065,6 +1063,7 @@ export default function SpaceExplorerView() {
           onArrived={()=>setFlying(false)}
           onSpeedChange={setSpeed}
           onLookAt={setSelected}
+          mouseInsideRef={mouseInsideRef}
         />
       </Canvas>
 
