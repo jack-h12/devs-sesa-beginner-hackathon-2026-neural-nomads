@@ -1016,8 +1016,8 @@ export default function SpaceExplorerView() {
         <ambientLight intensity={0.2}/>
         <pointLight position={[0,0,0]} intensity={6} color="#ffe8a0" decay={0.4}/>
         <hemisphereLight args={['#101840','#000000',0.25]}/>
-        <Stars radius={400} depth={100} count={20000} factor={6} saturation={0.5}/>
-        <Stars radius={150} depth={50} count={5000} factor={3} saturation={0}/>
+        <Stars radius={400} depth={100} count={8000} factor={6} saturation={0.5}/>
+        <Stars radius={150} depth={50} count={2000} factor={3} saturation={0}/>
         <Sun tex={textures.Sun}/>
         {PLANETS.map(p=>(
           <Planet key={p.name} {...p}

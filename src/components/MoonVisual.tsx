@@ -6,10 +6,16 @@ export default function MoonVisual({ size = 120 }: { size?: number }) {
 
   // moonLon: 0=new, 90=first quarter, 180=full, 270=last quarter
   const isWaxing = moonLon < 180;
-  // Shadow ellipse: at 0° and 180° the rx is maximal (covers half), at 90°/270° it's 0
-  const rx = Math.abs(Math.cos(moonLon * Math.PI / 180)) * (size / 2 - 2);
   const r = size / 2 - 2;
-
+  const illumFrac = illumination / 100;
+  // Terminator ellipse width: full at new/full moon, zero at quarters
+  const rx = Math.abs(1 - 2 * illumFrac) * r;
+  // Crescent (<50%): ellipse is dark, eating into the lit half.
+  // Gibbous  (>50%): ellipse is lit, filling into the dark half.
+  const isCrescent = illumFrac < 0.5;
+  const litColor = '#d4cfa8';
+  const darkColor = '#050a18';
+  const ellipseFill = isCrescent ? darkColor : litColor;
   // The lit side is on the right when waxing, left when waning
   const litSide = isWaxing ? 1 : -1;
 
@@ -26,8 +32,8 @@ export default function MoonVisual({ size = 120 }: { size?: number }) {
             <circle cx={size / 2} cy={size / 2} r={r} />
           </clipPath>
           <radialGradient id={`mg-${size}`} cx="40%" cy="35%" r="65%">
-            <stop offset="0%" stopColor={illumination > 5 ? '#d4cfa8' : '#1a1f36'} />
-            <stop offset="100%" stopColor={illumination > 5 ? '#9e9870' : '#0d1020'} />
+            <stop offset="0%" stopColor="#d4cfa8" />
+            <stop offset="100%" stopColor="#9e9870" />
           </radialGradient>
           <filter id="moonGlow">
             <feGaussianBlur stdDeviation="4" result="blur" />
@@ -46,17 +52,17 @@ export default function MoonVisual({ size = 120 }: { size?: number }) {
 
         {/* Phase shadow */}
         <g clipPath={`url(#mc-${size})`}>
-          {/* Dark half */}
+          {/* Dark half covers the unlit side */}
           <rect
             x={litSide === 1 ? 0 : size / 2}
             y={0} width={size / 2} height={size}
-            fill="#050a18"
+            fill={darkColor}
           />
-          {/* Ellipse transitions between full dark and full lit */}
+          {/* Terminator ellipse — dark when crescent, lit when gibbous */}
           <ellipse
             cx={size / 2} cy={size / 2}
             rx={rx} ry={r}
-            fill={isWaxing ? '#d4cfa8' : '#050a18'}
+            fill={ellipseFill}
           />
         </g>
 
