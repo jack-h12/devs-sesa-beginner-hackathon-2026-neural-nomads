@@ -1051,11 +1051,13 @@ export default function SpaceExplorerView() {
       </div>
 
       {/* Pointer-lock hint */}
-      {!pointerLocked && (
-        <div style={{ position:'absolute', bottom:'32%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:30, color:'rgba(140,180,255,0.5)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.15em', whiteSpace:'nowrap' }}>
-          CLICK TO ENTER FREE-LOOK · ESC TO RELEASE
-        </div>
-      )}
+      <div style={{ position:'absolute', bottom:'28%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:30, whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:10 }}>
+        <span style={{ color: pointerLocked ? 'rgba(100,255,160,0.9)' : 'rgba(255,220,80,0.95)', fontSize:12, fontFamily:'monospace', fontWeight:'bold', letterSpacing:'0.18em', textShadow: pointerLocked ? '0 0 10px rgba(80,255,140,0.7)' : '0 0 10px rgba(255,200,50,0.8)' }}>
+          {pointerLocked ? '● FREE-LOOK ACTIVE' : '● CLICK TO ENTER FREE-LOOK'}
+        </span>
+        <span style={{ color:'rgba(180,180,255,0.5)', fontSize:11, fontFamily:'monospace', letterSpacing:'0.12em' }}>·</span>
+        <span style={{ color:'rgba(180,200,255,0.85)', fontSize:11, fontFamily:'monospace', letterSpacing:'0.15em', textShadow:'0 0 6px rgba(140,180,255,0.5)' }}>ESC TO RELEASE</span>
+      </div>
 
       <Canvas style={{ position:'absolute', inset:0 }}>
         <ambientLight intensity={0.2}/>
