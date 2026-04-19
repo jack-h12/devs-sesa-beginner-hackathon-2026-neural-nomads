@@ -956,9 +956,9 @@ export default function SpaceExplorerView() {
 
   // Custom cursor + pointer lock
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [cursorInside, setCursorInside] = useState(false);
+  const [, setCursorInside] = useState(false);
   const [pointerLocked, setPointerLocked] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [, setIsFullscreen] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const mouseInsideRef = useRef(false);
 
