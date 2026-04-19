@@ -944,34 +944,10 @@ export default function SpaceExplorerView() {
   const flyTargetRef = useRef<THREE.Vector3|null>(null);
   const flyPlanetRef = useRef<string|null>(null);
 
-  // Custom cursor — hitmarker follows mouse
+  // Custom cursor — hide native cursor inside explorer
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const crosshairRef = useRef<HTMLDivElement>(null);
-  const rawPos = useRef({ x: 0.5, y: 0.38 });
-  const smoothPos = useRef({ x: 0.5, y: 0.38 });
   const [cursorInside, setCursorInside] = useState(false);
   const mouseInsideRef = useRef(false);
-
-  useEffect(() => {
-    let rafId: number;
-    const animate = () => {
-      smoothPos.current.x += (rawPos.current.x - smoothPos.current.x) * 0.2;
-      smoothPos.current.y += (rawPos.current.y - smoothPos.current.y) * 0.2;
-      if (crosshairRef.current) {
-        crosshairRef.current.style.left = `${smoothPos.current.x * 100}%`;
-        crosshairRef.current.style.top = `${smoothPos.current.y * 100}%`;
-      }
-      rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = wrapperRef.current!.getBoundingClientRect();
-    rawPos.current.x = (e.clientX - rect.left) / rect.width;
-    rawPos.current.y = (e.clientY - rect.top) / rect.height;
-  };
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
@@ -1016,12 +992,11 @@ export default function SpaceExplorerView() {
     <div
       ref={wrapperRef}
       style={{ width:'100%', height:'100vh', position:'relative', background:'#020810', cursor: cursorInside ? 'none' : 'default' }}
-      onMouseMove={handleMouseMove}
       onMouseEnter={() => { setCursorInside(true); mouseInsideRef.current = true; }}
       onMouseLeave={() => { setCursorInside(false); mouseInsideRef.current = false; }}
     >
-      {/* Floating hitmarker — follows mouse */}
-      <div ref={crosshairRef} style={{ position:'absolute', left:'50%', top:'38%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
+      {/* Hitmarker — fixed centre */}
+      <div style={{ position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
         <svg width="72" height="72" viewBox="0 0 72 72">
           {selected && (
             <circle cx="36" cy="36" r="26" fill="none" stroke="rgba(255,180,0,0.55)" strokeWidth="1" strokeDasharray="3 2">
