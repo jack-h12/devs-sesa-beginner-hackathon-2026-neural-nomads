@@ -482,7 +482,7 @@ function Planet({ name, radius, distance, speed, emissive, texture, selected, on
         </mesh>
         {name==='Saturn' && <SaturnRings radius={radius}/>}
         {labelVisible && (
-          <Html center position={[0,radius+1,0]} distanceFactor={25} occlude={false}>
+          <Html center position={[0,radius+1,0]} distanceFactor={25} occlude={false} zIndexRange={[15, 0]}>
             <div onClick={()=>onSelect(selected?null:name)} style={{color:selected?'#fde68a':'rgba(200,210,255,0.9)',fontSize:'12px',fontWeight:selected?'bold':'normal',whiteSpace:'nowrap',cursor:'pointer',textShadow:'0 0 8px rgba(0,0,0,1)',userSelect:'none'}}>
               {name}
             </div>
@@ -1025,7 +1025,7 @@ export default function SpaceExplorerView() {
   return (
     <div
       ref={wrapperRef}
-      style={{ width:'100%', height:'100vh', position:'relative', background:'#020810', cursor: (cursorInside || isFullscreen) ? 'none' : 'default' }}
+      style={{ width:'100%', height:'100vh', position:'relative', background:'#020810', overflow:'hidden', cursor: (cursorInside || isFullscreen) ? 'none' : 'default' }}
       onMouseDown={handleMouseDown}
       onMouseEnter={() => { setCursorInside(true); mouseInsideRef.current = true; }}
       onMouseLeave={() => { if (!pointerLocked) { setCursorInside(false); mouseInsideRef.current = false; } }}
