@@ -512,7 +512,6 @@ function FirstPersonController({
 }) {
   const { camera } = useThree();
   const euler = useRef(new THREE.Euler(0,0,0,'YXZ'));
-  const lastMouse = useRef({x:0,y:0});
   const vel = useRef(new THREE.Vector3());
   const arrivedRef = useRef(onArrived);
   const speedRef = useRef(onSpeedChange);
@@ -523,29 +522,20 @@ function FirstPersonController({
   lookAtRef.current = onLookAt;
 
   useEffect(() => {
-    // Start near Earth
     camera.position.set(13, 2, 4);
     camera.lookAt(0, 0, 0);
     euler.current.setFromQuaternion(camera.quaternion, 'YXZ');
   }, [camera]);
 
   useEffect(() => {
-    const isDragging = { value: false };
-    const onDown = (e: MouseEvent) => { isDragging.value = true; lastMouse.current = { x: e.clientX, y: e.clientY }; };
-    const onUp = () => { isDragging.value = false; };
     const onMove = (e: MouseEvent) => {
-      const active = mouseInsideRef.current || isDragging.value;
-      if (!active) { lastMouse.current = {x:e.clientX, y:e.clientY}; return; }
-      const dx=e.clientX-lastMouse.current.x, dy=e.clientY-lastMouse.current.y;
-      lastMouse.current={x:e.clientX,y:e.clientY};
-      euler.current.y -= dx*0.003;
-      euler.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, euler.current.x-dy*0.003));
+      if (!mouseInsideRef.current && !document.pointerLockElement) return;
+      euler.current.y -= e.movementX * 0.003;
+      euler.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, euler.current.x - e.movementY * 0.003));
       camera.quaternion.setFromEuler(euler.current);
     };
-    window.addEventListener('mousedown', onDown);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('mousemove',onMove);
-    return ()=>{ window.removeEventListener('mousedown',onDown); window.removeEventListener('mouseup',onUp); window.removeEventListener('mousemove',onMove); };
+    window.addEventListener('mousemove', onMove);
+    return () => { window.removeEventListener('mousemove', onMove); };
   }, [camera, mouseInsideRef]);
 
   const fwd = useRef(new THREE.Vector3());
@@ -950,10 +940,25 @@ export default function SpaceExplorerView() {
   const flyTargetRef = useRef<THREE.Vector3|null>(null);
   const flyPlanetRef = useRef<string|null>(null);
 
-  // Custom cursor — hide native cursor inside explorer
+  // Custom cursor + pointer lock
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [cursorInside, setCursorInside] = useState(false);
+  const [pointerLocked, setPointerLocked] = useState(false);
   const mouseInsideRef = useRef(false);
+
+  useEffect(() => {
+    const onChange = () => {
+      const locked = !!document.pointerLockElement;
+      setPointerLocked(locked);
+      if (locked) mouseInsideRef.current = true;
+    };
+    document.addEventListener('pointerlockchange', onChange);
+    return () => document.removeEventListener('pointerlockchange', onChange);
+  }, []);
+
+  const handleMouseDown = () => {
+    if (!pointerLocked) wrapperRef.current?.requestPointerLock();
+  };
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
@@ -998,8 +1003,9 @@ export default function SpaceExplorerView() {
     <div
       ref={wrapperRef}
       style={{ width:'100%', height:'100vh', position:'relative', background:'#020810', cursor: cursorInside ? 'none' : 'default' }}
+      onMouseDown={handleMouseDown}
       onMouseEnter={() => { setCursorInside(true); mouseInsideRef.current = true; }}
-      onMouseLeave={() => { setCursorInside(false); mouseInsideRef.current = false; }}
+      onMouseLeave={() => { if (!pointerLocked) { setCursorInside(false); mouseInsideRef.current = false; } }}
     >
       {/* Hitmarker — fixed centre of space viewport */}
       <div style={{ position:'absolute', left:'50%', top:'38%', transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:30, filter: selected ? 'drop-shadow(0 0 6px rgba(255,160,0,0.8))' : 'none' }}>
@@ -1022,6 +1028,13 @@ export default function SpaceExplorerView() {
           })}
         </svg>
       </div>
+
+      {/* Pointer-lock hint */}
+      {!pointerLocked && (
+        <div style={{ position:'absolute', bottom:'32%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:30, color:'rgba(140,180,255,0.5)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.15em', whiteSpace:'nowrap' }}>
+          CLICK TO ENTER FREE-LOOK · ESC TO RELEASE
+        </div>
+      )}
 
       <Canvas style={{ position:'absolute', inset:0 }}>
         <ambientLight intensity={0.2}/>
