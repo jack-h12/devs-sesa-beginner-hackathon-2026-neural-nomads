@@ -549,7 +549,40 @@ function FirstPersonController({
       camera.quaternion.setFromEuler(euler.current);
     };
     window.addEventListener('mousemove', onMove);
-    return () => { window.removeEventListener('mousemove', onMove); };
+
+    // Touch look — single-finger drag on non-control areas rotates the camera
+    const lastTouch = { x: 0, y: 0, active: false };
+    const isControl = (target: EventTarget | null) =>
+      target instanceof Element && target.closest('[data-touch-control]') !== null;
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { lastTouch.active = false; return; }
+      const t = e.touches[0];
+      if (isControl(t.target)) { lastTouch.active = false; return; }
+      lastTouch.x = t.clientX; lastTouch.y = t.clientY; lastTouch.active = true;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!lastTouch.active || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - lastTouch.x;
+      const dy = t.clientY - lastTouch.y;
+      lastTouch.x = t.clientX; lastTouch.y = t.clientY;
+      euler.current.y -= dx * 0.005;
+      euler.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, euler.current.x - dy * 0.005));
+      camera.quaternion.setFromEuler(euler.current);
+    };
+    const onTouchEnd = () => { lastTouch.active = false; };
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
   }, [camera, mouseInsideRef]);
 
   const fwd = useRef(new THREE.Vector3());
@@ -633,6 +666,58 @@ function FirstPersonController({
   return null;
 }
 
+// ── Touch control button ──────────────────────────────────────────────────────
+
+type KeyName = 'w'|'a'|'s'|'d'|'space'|'c'|'shift';
+function TouchPadButton({
+  label, keyName, keysRef, active, setActive, style,
+}: {
+  label: React.ReactNode;
+  keyName: KeyName;
+  keysRef: React.RefObject<Record<KeyName, boolean>>;
+  active: Record<string, boolean>;
+  setActive: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  style?: React.CSSProperties;
+}) {
+  const press = (v: boolean) => {
+    if (keysRef.current) keysRef.current[keyName] = v;
+    setActive(a => ({ ...a, [keyName]: v }));
+  };
+  const isDown = !!active[keyName];
+  return (
+    <button
+      data-touch-control
+      onTouchStart={() => press(true)}
+      onTouchEnd={() => press(false)}
+      onTouchCancel={() => press(false)}
+      onContextMenu={e => e.preventDefault()}
+      style={{
+        background: isDown
+          ? 'linear-gradient(to bottom, rgba(120,180,255,0.45), rgba(60,120,220,0.35))'
+          : 'linear-gradient(to bottom, rgba(20,30,60,0.85), rgba(10,18,40,0.9))',
+        border: `1px solid ${isDown ? 'rgba(180,220,255,0.9)' : 'rgba(100,150,220,0.45)'}`,
+        color: isDown ? 'rgba(255,255,255,1)' : 'rgba(200,220,255,0.9)',
+        borderRadius: 10,
+        fontSize: 16,
+        fontFamily: 'monospace',
+        fontWeight: 700,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'none',
+        backdropFilter: 'blur(6px)',
+        boxShadow: isDown
+          ? 'inset 0 2px 6px rgba(0,0,0,0.4), 0 0 8px rgba(100,180,255,0.4)'
+          : '0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(120,180,255,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer',
+        ...style,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 // ── Cockpit overlay ───────────────────────────────────────────────────────────
 
 function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlanet: string | null; flying: boolean }) {
@@ -711,7 +796,7 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
           <div style={{ width:6, height:6, borderRadius:'50%', background:'rgba(100,255,150,0.9)', boxShadow:'0 0 6px rgba(100,255,150,0.8)', animation:'hud-blink 1.8s infinite' }}/>
           <div style={{ color:'rgba(100,200,255,0.75)', fontSize:'10px', letterSpacing:'0.15em' }}>SYS ONLINE</div>
         </div>
-        <div style={{ color:'rgba(100,200,255,0.5)', fontSize:'9px', letterSpacing:'0.2em' }}>◈ STELLAR NAVIGATOR · MODEL SN-2.4 · CLASS-VII</div>
+        <div className="hidden sm:block" style={{ color:'rgba(100,200,255,0.5)', fontSize:'9px', letterSpacing:'0.2em' }}>◈ STELLAR NAVIGATOR · MODEL SN-2.4 · CLASS-VII</div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ color: flying ? 'rgba(255,200,50,0.95)' : 'rgba(100,255,150,0.75)', fontSize:'10px', letterSpacing:'0.15em' }}>
             {flying ? 'AUTOPILOT' : 'MANUAL'}
@@ -824,8 +909,8 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
         <div style={{ position:'absolute', top:'30%', left:'18%', width:1, bottom:'15%', background:'rgba(80,130,220,0.25)' }}/>
         <div style={{ position:'absolute', top:'30%', right:'18%', width:1, bottom:'15%', background:'rgba(80,130,220,0.25)' }}/>
 
-        {/* System status LED strip — along the top edge */}
-        <div style={{ position:'absolute', top:6, left:'22%', right:'22%', display:'flex', justifyContent:'space-around', alignItems:'center', fontFamily:'monospace' }}>
+        {/* System status LED strip — along the top edge (hidden on small) */}
+        <div className="hidden sm:flex" style={{ position:'absolute', top:6, left:'22%', right:'22%', justifyContent:'space-around', alignItems:'center', fontFamily:'monospace' }}>
           {[
             { label:'HULL', color:'100,255,150', value:'98%' },
             { label:'PWR',  color:'100,255,150', value:'NOM' },
@@ -843,8 +928,8 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
           ))}
         </div>
 
-        {/* Left — flight controls, centred vertically */}
-        <div style={{ position:'absolute', left:'3%', top:'55%', transform:'translateY(-50%)', textAlign:'center' }}>
+        {/* Left — flight controls, centred vertically (hidden on small screens — no keyboard) */}
+        <div className="hidden sm:block" style={{ position:'absolute', left:'3%', top:'55%', transform:'translateY(-50%)', textAlign:'center' }}>
           <div style={{ color:'rgba(80,140,255,0.45)', fontSize:'9px', fontFamily:'monospace', letterSpacing:'0.08em', marginBottom:6 }}>▸ FLIGHT CONTROLS</div>
           <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
             {[
@@ -864,11 +949,12 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
 
         {/* Centre — body info panel */}
         {body ? (
-          <div style={{ position:'absolute', left:'22%', right:'22%', top:'18%', bottom:'8%', display:'flex', gap:18, alignItems:'center', border:'1px solid rgba(100,160,255,0.15)', borderRadius:6, padding:'0 14px', background:'rgba(5,12,28,0.35)' }}>
+          <div className="left-[3%] right-[3%] sm:left-[22%] sm:right-[22%]" style={{ position:'absolute', top:'18%', bottom:'8%', display:'flex', gap:14, alignItems:'center', border:'1px solid rgba(100,160,255,0.15)', borderRadius:6, padding:'0 14px', background:'rgba(5,12,28,0.35)' }}>
             <img
               src={`${import.meta.env.BASE_URL}${body.image.replace(/^\//, '')}`}
               alt={body.name}
-              style={{ width:130, height:130, objectFit:'cover', borderRadius:10, border:'1px solid rgba(100,160,255,0.3)', flexShrink:0 }}
+              className="w-20 h-20 sm:w-32 sm:h-32"
+              style={{ objectFit:'cover', borderRadius:10, border:'1px solid rgba(100,160,255,0.3)', flexShrink:0 }}
             />
             <div style={{ flex:1, overflow:'auto', maxHeight:'100%' }}>
               <div style={{ color:'rgba(100,160,255,0.5)', fontSize:'10px', fontFamily:'monospace', letterSpacing:'0.1em', marginBottom:4 }}>BODY LOG</div>
@@ -894,7 +980,7 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
             </div>
           </div>
         ) : (
-          <div style={{ position:'absolute', left:'22%', right:'22%', top:'18%', bottom:'8%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px dashed rgba(60,90,180,0.25)', borderRadius:6, background:'rgba(5,12,28,0.2)' }}>
+          <div className="left-[3%] right-[3%] sm:left-[22%] sm:right-[22%]" style={{ position:'absolute', top:'18%', bottom:'8%', display:'flex', alignItems:'center', justifyContent:'center', border:'1px dashed rgba(60,90,180,0.25)', borderRadius:6, background:'rgba(5,12,28,0.2)' }}>
             <div style={{ color:'rgba(80,120,200,0.5)', fontSize:'11px', fontFamily:'monospace', letterSpacing:'0.2em', textAlign:'center' }}>
               ⊡ SENSOR ARRAY STANDBY ⊡<br/>
               <span style={{ fontSize:9, color:'rgba(60,90,180,0.35)', letterSpacing:'0.15em' }}>AIM AT A CELESTIAL BODY TO INITIATE SCAN</span>
@@ -902,8 +988,8 @@ function CockpitHUD({ speed, lockedPlanet, flying }: { speed: number; lockedPlan
           </div>
         )}
 
-        {/* Right panel — ship stats / "bulkhead" */}
-        <div style={{ position:'absolute', right:'3%', top:'55%', transform:'translateY(-50%)', fontFamily:'monospace', textAlign:'right' }}>
+        {/* Right panel — ship stats / "bulkhead" (hidden on small screens) */}
+        <div className="hidden sm:block" style={{ position:'absolute', right:'3%', top:'55%', transform:'translateY(-50%)', fontFamily:'monospace', textAlign:'right' }}>
           <div style={{ color:'rgba(80,140,255,0.45)', fontSize:'9px', letterSpacing:'0.08em', marginBottom:6 }}>SHIP READOUT ◂</div>
           {[
             { label:'REACTOR',  value:'STABLE',  color:'100,255,150' },
@@ -949,6 +1035,7 @@ export default function SpaceExplorerView() {
   const [selected, setSelected] = useState<string|null>(null);
   const [flying, setFlying] = useState(false);
   const [speed, setSpeed] = useState(0);
+  const [touchActive, setTouchActive] = useState<Record<string, boolean>>({});
   const { textures, progress, current } = useTextures();
   const keysRef = useRef({ w:false, a:false, s:false, d:false, space:false, shift:false, c:false });
   const flyTargetRef = useRef<THREE.Vector3|null>(null);
@@ -1058,17 +1145,18 @@ export default function SpaceExplorerView() {
         opacity: showHint ? 1 : 0, transition:'opacity 0.6s ease, transform 0.6s ease',
         pointerEvents: showHint ? 'auto' : 'none', zIndex:9999,
         background:'rgba(6,12,28,0.88)', border:'1px solid rgba(100,160,255,0.3)',
-        borderRadius:16, padding:'28px 36px 24px', backdropFilter:'blur(16px)',
+        borderRadius:16, padding:'24px 24px 20px', backdropFilter:'blur(16px)',
         boxShadow:'0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(100,160,255,0.1)',
-        display:'flex', flexDirection:'column', alignItems:'center', gap:18, minWidth:320,
+        display:'flex', flexDirection:'column', alignItems:'center', gap:18,
+        width:'min(360px, calc(100vw - 32px))',
       }}>
         {/* Header + X */}
         <div style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ color:'rgba(180,210,255,0.55)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.22em', textTransform:'uppercase' }}>Controls</div>
           <button onMouseDown={e => e.stopPropagation()} onClick={() => { setShowHint(false); wrapperRef.current?.requestPointerLock(); }} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(140,170,220,0.6)', fontSize:16, lineHeight:1, padding:'0 2px' }}>✕</button>
         </div>
-        {/* Keys */}
-        <div style={{ display:'flex', gap:20, alignItems:'center' }}>
+        {/* Keys — desktop */}
+        <div className="hidden sm:flex" style={{ gap:20, alignItems:'center' }}>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
             <div style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.35)', borderRadius:8, padding:'6px 18px', color:'rgba(200,220,255,0.95)', fontSize:13, fontFamily:'monospace', fontWeight:'bold' }}>Click</div>
             <div style={{ color:'rgba(140,170,220,0.65)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.1em' }}>Enter free-look</div>
@@ -1088,10 +1176,28 @@ export default function SpaceExplorerView() {
             <div style={{ color:'rgba(140,170,220,0.65)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.1em' }}>Move</div>
           </div>
         </div>
+
+        {/* Keys — mobile */}
+        <div className="sm:hidden" style={{ display:'flex', flexDirection:'column', gap:12, alignItems:'center' }}>
+          <div style={{ display:'flex', gap:18, alignItems:'center' }}>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+              <div style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.35)', borderRadius:8, padding:'6px 14px', color:'rgba(200,220,255,0.95)', fontSize:12, fontFamily:'monospace', fontWeight:'bold' }}>Drag</div>
+              <div style={{ color:'rgba(140,170,220,0.65)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.1em' }}>Look around</div>
+            </div>
+            <div style={{ width:1, height:36, background:'rgba(100,160,255,0.15)' }}/>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+              <div style={{ background:'rgba(100,160,255,0.15)', border:'1px solid rgba(100,160,255,0.35)', borderRadius:8, padding:'6px 14px', color:'rgba(200,220,255,0.95)', fontSize:12, fontFamily:'monospace', fontWeight:'bold' }}>Pads</div>
+              <div style={{ color:'rgba(140,170,220,0.65)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.1em' }}>Move · Up/Down · Boost</div>
+            </div>
+          </div>
+          <div style={{ color:'rgba(140,170,220,0.55)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.08em', textAlign:'center' }}>
+            Use the D-pad (bottom left) and thrusters (bottom right)
+          </div>
+        </div>
       </div>
 
-      {/* Persistent small hint — inside cockpit viewport, above dashboard */}
-      <div style={{ position:'absolute', bottom:'31%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:25, color:'rgba(140,180,255,0.4)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.15em', whiteSpace:'nowrap' }}>
+      {/* Persistent small hint — inside cockpit viewport, above dashboard (desktop only) */}
+      <div className="hidden sm:block" style={{ position:'absolute', bottom:'31%', left:'50%', transform:'translateX(-50%)', pointerEvents:'none', zIndex:25, color:'rgba(140,180,255,0.4)', fontSize:10, fontFamily:'monospace', letterSpacing:'0.15em', whiteSpace:'nowrap' }}>
         CLICK TO ENTER FREE-LOOK · ESC TO RELEASE
       </div>
 
@@ -1123,7 +1229,7 @@ export default function SpaceExplorerView() {
       <CockpitHUD speed={speed} lockedPlanet={selected} flying={flying}/>
 
       {/* Destinations nav — "JUMP CONSOLE" horizontal row at top of canvas, clear of the right-side radar/HUD */}
-      <div onMouseDown={e => e.stopPropagation()} style={{ position:'absolute', top:88, right:12, zIndex:60, display:'flex', flexDirection:'column', gap:2, pointerEvents:'auto', padding:'6px 8px 8px', background:'linear-gradient(to bottom, rgba(12,20,42,0.85), rgba(8,14,32,0.9))', border:'1px solid rgba(80,130,220,0.35)', borderRadius:8, boxShadow:'inset 0 1px 0 rgba(120,180,255,0.15), 0 0 10px rgba(0,0,0,0.5)' }}>
+      <div onMouseDown={e => e.stopPropagation()} style={{ position:'absolute', top:72, right:8, zIndex:60, display:'flex', flexDirection:'column', gap:2, pointerEvents:'auto', padding:'5px 6px 6px', background:'linear-gradient(to bottom, rgba(12,20,42,0.85), rgba(8,14,32,0.9))', border:'1px solid rgba(80,130,220,0.35)', borderRadius:8, boxShadow:'inset 0 1px 0 rgba(120,180,255,0.15), 0 0 10px rgba(0,0,0,0.5)', maxHeight:'45vh', overflowY:'auto' }}>
         <div style={{ color:'rgba(100,180,255,0.75)', fontSize:9, fontFamily:'monospace', letterSpacing:'0.2em', marginBottom:4, textAlign:'left', display:'flex', alignItems:'center', gap:6 }}>
           <div style={{ width:5, height:5, borderRadius:'50%', background:'rgba(100,255,150,0.9)', boxShadow:'0 0 4px rgba(100,255,150,0.7)', animation:'hud-blink 1.6s infinite' }}/>
           JUMP CONSOLE
@@ -1146,6 +1252,46 @@ export default function SpaceExplorerView() {
             <span style={{ color: selected===b.name?'rgba(255,220,100,0.9)':'rgba(100,140,200,0.45)' }}>▸</span>
           </button>
         ))}
+      </div>
+
+      {/* ── Mobile touch controls — D-pad + thrusters + boost ── */}
+      <div
+        className="sm:hidden"
+        data-touch-control
+        onMouseDown={e => e.stopPropagation()}
+        style={{
+          position: 'absolute', left: 10, bottom: 'calc(30% + 10px)', zIndex: 70,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 44px)',
+          gridTemplateRows: 'repeat(3, 44px)',
+          gap: 4,
+          pointerEvents: 'auto',
+        }}
+      >
+        <div/>
+        <TouchPadButton label="▲" keyName="w" keysRef={keysRef} active={touchActive} setActive={setTouchActive}/>
+        <div/>
+        <TouchPadButton label="◀" keyName="a" keysRef={keysRef} active={touchActive} setActive={setTouchActive}/>
+        <div style={{ width: 44, height: 44, borderRadius: 10, border: '1px dashed rgba(100,150,220,0.2)' }}/>
+        <TouchPadButton label="▶" keyName="d" keysRef={keysRef} active={touchActive} setActive={setTouchActive}/>
+        <div/>
+        <TouchPadButton label="▼" keyName="s" keysRef={keysRef} active={touchActive} setActive={setTouchActive}/>
+        <div/>
+      </div>
+
+      <div
+        className="sm:hidden"
+        data-touch-control
+        onMouseDown={e => e.stopPropagation()}
+        style={{
+          position: 'absolute', right: 10, bottom: 'calc(30% + 10px)', zIndex: 70,
+          display: 'flex', flexDirection: 'column', gap: 4,
+          pointerEvents: 'auto',
+        }}
+      >
+        <TouchPadButton label="UP" keyName="space" keysRef={keysRef} active={touchActive} setActive={setTouchActive} style={{ width: 56, height: 44, fontSize: 11 }}/>
+        <TouchPadButton label="DN" keyName="c" keysRef={keysRef} active={touchActive} setActive={setTouchActive} style={{ width: 56, height: 44, fontSize: 11 }}/>
+        <TouchPadButton label="⚡ BOOST" keyName="shift" keysRef={keysRef} active={touchActive} setActive={setTouchActive} style={{ width: 56, height: 44, fontSize: 9 }}/>
       </div>
     </div>
   );

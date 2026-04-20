@@ -309,6 +309,7 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
   const hoveredRef = useRef<string | null>(null);
   const [hover, setHover] = useState<{ name: string; x: number; y: number } | null>(null);
   const [visibleNames, setVisibleNames] = useState<Set<string>>(new Set());
+  const [listOpen, setListOpen] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth >= 640 : true);
 
   // Rocket cursor
   const containerRef = useRef<HTMLDivElement>(null);
@@ -899,12 +900,12 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
       />
 
       {/* Header — overlaid, non-blocking */}
-      <div className="absolute top-0 left-0 right-0 pt-5 pb-2 text-center z-10 pointer-events-none">
-        <p className="text-slate-400 text-[11px] uppercase tracking-widest mb-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>Southern Hemisphere</p>
-        <h2 className="text-white font-bold text-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
+      <div className="absolute top-0 left-0 right-0 pt-16 sm:pt-20 pb-2 px-4 text-center z-10 pointer-events-none">
+        <p className="text-slate-400 text-[10px] sm:text-[11px] uppercase tracking-widest mb-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>{userLat < 0 ? 'Southern' : 'Northern'} Hemisphere</p>
+        <h2 className="text-white font-bold text-lg sm:text-2xl" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}>
           <span className="text-gradient">Interactive Sky Map</span>
         </h2>
-        <p className="text-slate-400 text-xs mt-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>Real-time positions for your location</p>
+        <p className="text-slate-400 text-[10px] sm:text-xs mt-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>Real-time positions for your location</p>
       </div>
 
       {/* Zoom controls */}
@@ -944,22 +945,43 @@ export default function SkyMapView({ userLat = -36.86, userLon = 174.76 }: Props
         ))}
       </div>
 
+      {/* Mobile toggle for constellation list */}
+      <button
+        onClick={() => setListOpen(o => !o)}
+        className="absolute z-30 sm:hidden"
+        style={{
+          left: 12, top: 'calc(50% - 18px)',
+          width: 36, height: 36,
+          background: 'rgba(10,16,36,0.85)',
+          border: '1px solid rgba(120,160,255,0.35)',
+          borderRadius: 8,
+          color: 'rgba(220,230,255,0.9)',
+          fontSize: 16,
+          backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+        }}
+        aria-label="Toggle constellation list"
+      >
+        {listOpen ? '✕' : '☰'}
+      </button>
+
       {/* Constellation list — left side */}
       <div
         className="absolute z-20"
         style={{
-          left: 16,
+          left: 12,
           top: '50%',
           transform: 'translateY(-50%)',
-          width: 180,
-          maxHeight: '70vh',
+          width: 'min(180px, 60vw)',
+          maxHeight: '60vh',
           background: 'rgba(10,16,36,0.75)',
           border: '1px solid rgba(120,160,255,0.25)',
           borderRadius: 10,
           backdropFilter: 'blur(6px)',
           boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
           overflow: 'hidden',
-          display: 'flex',
+          display: listOpen ? 'flex' : 'none',
           flexDirection: 'column',
         }}
       >

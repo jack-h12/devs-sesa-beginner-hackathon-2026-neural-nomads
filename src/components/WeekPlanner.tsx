@@ -284,11 +284,11 @@ export default function WeekPlanner({ weatherDays, userLat, userLon, city, onSel
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-80 bg-gradient-to-b from-transparent via-[#080d1a]/80 to-[#080d1a]" />
 
         <div className="relative text-center px-6 pt-6 pb-24 sm:pt-6 sm:pb-32 max-w-5xl mx-auto">
-          <div className={`pill mb-6 mx-auto text-4xl transition-colors duration-300 w-64 flex-shrink-0 justify-center text-white ${weatherLoading ? 'bg-red-500/30' : 'pill-primary'}`}>
+          <div className={`pill mb-6 mx-auto text-sm sm:text-base transition-colors duration-300 max-w-full justify-center text-white ${weatherLoading ? 'bg-red-500/30' : 'pill-primary'}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
             {weatherLoading ? 'Fetching live weather…' : `Live conditions · ${city}`}
           </div>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black uppercase leading-[1.05] tracking-tight text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+          <h1 className="text-3xl sm:text-6xl lg:text-7xl font-black uppercase leading-[1.05] tracking-tight text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
             Master the night sky.
             <br />
             Plan your perfect stargazing night.
@@ -296,16 +296,16 @@ export default function WeekPlanner({ weatherDays, userLat, userLon, city, onSel
           <p className="text-slate-200 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
             We score each night this week out of 10 using real weather data and live moon calculations — so you only go out when it's worth it.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={() => document.getElementById('forecast')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3.5 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 text-white font-bold uppercase tracking-wider text-sm shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_rgba(139,92,246,0.7)] hover:-translate-y-0.5 transition-all"
+              className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 text-white font-bold uppercase tracking-wider text-xs sm:text-sm shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:shadow-[0_0_60px_rgba(139,92,246,0.7)] hover:-translate-y-0.5 transition-all"
             >
               Check the planner
             </button>
             <button
               onClick={onSelectTonight}
-              className="px-8 py-3.5 rounded-full border border-white/70 text-white font-bold uppercase tracking-wider text-sm bg-white/5 backdrop-blur-sm hover:bg-white/15 hover:-translate-y-0.5 transition-all"
+              className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full border border-white/70 text-white font-bold uppercase tracking-wider text-xs sm:text-sm bg-white/5 backdrop-blur-sm hover:bg-white/15 hover:-translate-y-0.5 transition-all"
             >
               Explore tonight's sky
             </button>
@@ -331,8 +331,8 @@ export default function WeekPlanner({ weatherDays, userLat, userLon, city, onSel
                 <p className="text-slate-400 text-sm mt-0.5">{tonight.recommendation}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <div className="flex gap-3 text-sm text-slate-400">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
+              <div className="flex gap-2 sm:gap-3 text-sm text-slate-400 flex-wrap">
                 <span className="pill pill-muted">☁ {tonight.cloudCover}% cloud</span>
                 <span className="pill pill-muted">Score {tonight.totalScore}/10</span>
               </div>
@@ -376,7 +376,7 @@ export default function WeekPlanner({ weatherDays, userLat, userLon, city, onSel
               className="card p-5 mt-2"
             >
               <p className="text-white font-semibold mb-3">How each night is scored</p>
-              <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 {[
                   { pct: '55%', label: 'Weather', desc: 'Cloud cover from Open-Meteo API. Real live data.' },
                   { pct: '35%', label: 'Moon', desc: 'Lunar illumination via NASA/JPL astronomy-engine.' },

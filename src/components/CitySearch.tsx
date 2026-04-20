@@ -91,10 +91,10 @@ export default function CitySearch({ onSelectCity, currentCity }: Props) {
     <div className="relative">
       <button
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        className="flex items-center gap-2 glass px-3 py-1.5 rounded-xl text-sm border border-white/10 hover:border-primary/40 transition-all"
+        className="flex items-center gap-1.5 sm:gap-2 glass px-2 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm border border-white/10 hover:border-primary/40 transition-all"
       >
         <span className="text-secondary">📍</span>
-        <span className="text-light-text font-medium max-w-[120px] truncate">{currentCity}</span>
+        <span className="text-light-text font-medium max-w-[80px] sm:max-w-[120px] truncate">{currentCity}</span>
         <span className="text-muted-text text-xs">▾</span>
       </button>
 
@@ -109,7 +109,7 @@ export default function CitySearch({ onSelectCity, currentCity }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.97 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full right-0 mt-5 w-72 bg-[#0f1628] border border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden"
+              className="absolute top-full left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-0 mt-5 w-[min(18rem,calc(100vw-1rem))] bg-[#0f1628] border border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden"
             >
               {/* Search input */}
               <div className="p-3 border-b border-white/8">

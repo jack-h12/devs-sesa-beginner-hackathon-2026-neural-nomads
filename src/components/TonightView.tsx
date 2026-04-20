@@ -30,7 +30,7 @@ function MoonCard() {
 
   return (
     <Section title="🌙 Moon tonight">
-      <div className="flex gap-5 items-start">
+      <div className="flex gap-4 sm:gap-5 items-start flex-wrap sm:flex-nowrap">
         <MoonVisual size={110} />
         <div className="flex-1 min-w-0">
           <h3 className="text-white font-bold text-xl mb-1">{moon.phaseName}</h3>
@@ -338,11 +338,11 @@ export default function TonightView({ userLat, userLon, city, iss }: Props) {
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             {now} · {city}
           </div>
-          <h1 className="text-5xl sm:text-7xl font-black leading-none tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-7xl font-black leading-none tracking-tight mb-4">
             <span className="text-white">Tonight's </span>
             <span className="text-gradient">Sky Guide.</span>
           </h1>
-          <p className="text-slate-400 text-lg max-w-xl mx-auto">
+          <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto">
             {moon.emoji} {moon.phaseName} · {moon.illumination}% illuminated — here's everything you can see right now, in plain English.
           </p>
         </motion.div>
